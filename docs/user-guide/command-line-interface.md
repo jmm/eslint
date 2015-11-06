@@ -71,6 +71,14 @@ Miscellaneous:
   -v, --version              Outputs the version number
   ```
 
+Options that accept array values can be specified by repeating the option or with a comma-delimited list.
+
+Example:
+
+    eslint --ignore-pattern a.js --ignore-pattern b.js file.js
+
+    eslint --ignore-pattern a.js,b.js file.js
+
 ### Basic configuration
 
 #### `-c`, `--config`
