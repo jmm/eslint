@@ -46,7 +46,7 @@ Specifying rules and plugins:
 Ignoring files:
   --ignore-path path::String  Specify path of ignore file
   --no-ignore                Disable use of .eslintignore
-  --ignore-pattern String    Pattern of files to ignore (in addition to those
+  --ignore-pattern [String]  Patterns of files to ignore (in addition to those
                              in .eslintignore)
 
 Using stdin:
