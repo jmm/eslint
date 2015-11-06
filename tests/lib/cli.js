@@ -358,6 +358,44 @@ describe("cli", function() {
     });
 
 
+    describe("when given patterns to ignore", function() {
+        var sandbox = sinon.sandbox.create(),
+            localCLI;
+
+        afterEach(function() {
+            sandbox.verifyAndRestore();
+        });
+
+        it("should not process any matching files", function() {
+            var ignorePaths = ["a", "b"];
+
+            // create a fake CLIEngine to test with
+            var fakeCLIEngine = sandbox.mock().withExactArgs(sinon.match({
+                ignorePattern: ignorePaths
+            }));
+
+            fakeCLIEngine.prototype = leche.fake(CLIEngine.prototype);
+            sandbox.stub(fakeCLIEngine.prototype, "executeOnFiles").returns({});
+            sandbox.stub(fakeCLIEngine.prototype, "getFormatter").returns(sinon.spy());
+
+            localCLI = proxyquire("../../lib/cli", {
+                "./cli-engine": fakeCLIEngine,
+                "./logging": log
+            });
+
+            var exitCode = localCLI.execute(
+                ignorePaths.map(function(ignorePath) {
+                    return "--ignore-pattern " + ignorePath;
+                })
+                    .concat(".")
+                    .join(" ")
+            );
+
+            assert.equal(exitCode, 0);
+        });
+    });
+
+
     describe("when executing a file with a shebang", function() {
 
         it("should execute without error", function() {
