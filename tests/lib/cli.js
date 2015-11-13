@@ -37,6 +37,34 @@ describe("cli", function() {
     });
 
     /**
+     * Verify that CLIEngine receives correct opts via cli.execute().
+     * @param {string} cmd CLI command.
+     * @param {object} opts Options hash that should match that received by CLIEngine.
+     * @returns {void}
+     */
+    function verifyCLIEngineOpts(cmd, opts) {
+        var sandbox = sinon.sandbox.create(),
+            localCLI,
+            fakeCLIEngine;
+
+        // create a fake CLIEngine to test with
+        fakeCLIEngine = sandbox.mock().withExactArgs(sinon.match(opts));
+
+        fakeCLIEngine.prototype = leche.fake(CLIEngine.prototype);
+        sandbox.stub(fakeCLIEngine.prototype, "executeOnFiles").returns({});
+        sandbox.stub(fakeCLIEngine.prototype, "getFormatter").returns(sinon.spy());
+
+        localCLI = proxyquire("../../lib/cli", {
+            "./cli-engine": fakeCLIEngine,
+            "./logging": log
+        });
+
+        localCLI.execute(cmd);
+        sandbox.verifyAndRestore();
+    }
+    // verifyCLIEngineOpts
+
+    /**
      * Returns the path inside of the fixture directory.
      * @returns {string} The path inside the fixture directory.
      * @private
@@ -357,44 +385,21 @@ describe("cli", function() {
         });
     });
 
-
     describe("when given patterns to ignore", function() {
-        var sandbox = sinon.sandbox.create(),
-            localCLI;
-
-        afterEach(function() {
-            sandbox.verifyAndRestore();
-        });
-
         it("should not process any matching files", function() {
             var ignorePaths = ["a", "b"];
 
-            // create a fake CLIEngine to test with
-            var fakeCLIEngine = sandbox.mock().withExactArgs(sinon.match({
-                ignorePattern: ignorePaths
-            }));
-
-            fakeCLIEngine.prototype = leche.fake(CLIEngine.prototype);
-            sandbox.stub(fakeCLIEngine.prototype, "executeOnFiles").returns({});
-            sandbox.stub(fakeCLIEngine.prototype, "getFormatter").returns(sinon.spy());
-
-            localCLI = proxyquire("../../lib/cli", {
-                "./cli-engine": fakeCLIEngine,
-                "./logging": log
-            });
-
-            var exitCode = localCLI.execute(
+            verifyCLIEngineOpts(
                 ignorePaths.map(function(ignorePath) {
                     return "--ignore-pattern " + ignorePath;
-                })
-                    .concat(".")
-                    .join(" ")
-            );
+                }).concat(".").join(" "),
 
-            assert.equal(exitCode, 0);
+                {
+                    ignorePattern: ignorePaths
+                }
+            );
         });
     });
-
 
     describe("when executing a file with a shebang", function() {
 
